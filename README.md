@@ -16,6 +16,8 @@ Representation
 
 Chromosomes are strings S of length L = N ^ 3 - 1 over the alphabet {u, d, l, r, a}: "u" for up, "d" for down, "l" and "r" for left and right, and "a" for straight ahead. The chromosome encodes a possible solution to the corresponding puzzle T(S) = {u, d, l, r} -> 1, {a} -> 0, where 1 is an angle and 0 is a straight joint.
 
+All solutions start in the corner of the cube.
+
 Fitness
 -------
 
