@@ -7,11 +7,11 @@
             'd', // down
             'a'  // ahead
         ],
-        N = 4,
+        N = 3,
         L = N * N * N - 1,
-        P = 20,  // number of parents
-        O = 200, // number of offspring
-        M = 0.01, // mutation chance
+        P = 5, // number of parents
+        O = 10, // number of offspring
+        M = 0.1, // mutation chance
         G = 200; // interval time per generation
     
     /**
@@ -43,7 +43,7 @@
     /**
      * Calculates the fitness of a candidate solution.
      */
-    function calculateFitness(candidateSolution) {
+    function calculateFitness(individual) {
         var fitness = 0,
             x = {}, // hashmap for taken locations
             l = {x: 0, y: 0, z: 0}, // location
@@ -51,7 +51,7 @@
             o = {x: 0, y: 1, z: 0}, // orientation
             t; // temporary variable
             
-        _.each(candidateSolution, function (move) {
+        _.each(individual.solution, function (move) {
             switch (move) {
             case 'a': // straight ahead
                 break;
@@ -113,20 +113,23 @@
             l.z += d.z;
             
             // penalty of 2 for taken position
-            if (x[l.x + '-' + l.y + '-' + l.z]) {
-                fitness += 2;
+            var uid = l.x + '|' + l.y + '|' + l.z;
+            if (x[uid]) {
+                ++fitness;
             } else {
-                x[l.x + '-' + l.y + '-' + l.z] = true;
+                x[uid] = 0;
             }
+            x[uid]++;
             
             // penalty of 1 for being outside of the cube
             if (l.x < 0 || l.x >= N ||
                 l.y < 0 || l.y >= N ||
                 l.z < 0 || l.z >= N) {
-                ++fitness;
+                fitness += 5;
             }
         });
-        return fitness;
+        individual.fitness = fitness;
+        individual.x = x; //FIXME ugly quick fix for drawing
     }
     
     // initialise parents with random candidate solutions
@@ -141,7 +144,7 @@
     // calculate fitness for parents
     //FIXME this is not used right now
     _.each(parents, function (parent) {
-        parent.fitness = calculateFitness(parent.solution); 
+        calculateFitness(parent); 
     });
     
     // iterative evolution
@@ -150,10 +153,11 @@
         
         // best result until now
         //FIXME draw 3d with canvas or something
-        console.log(parents[0]);
+        //console.log(parents[0]);
+        draw(parents[0]);
         
         //FIXME experiment random mutation chance
-        //M = Math.random();
+        M = Math.random();
     
         // produce offspring
         _.each(parents, function (parent) {
@@ -171,7 +175,7 @@
             //FIXME fixed, variable or enherited mutation rate?
             //FIXME fixed, variable or enherited crossover points?
             child.solution = mutate(child.solution);
-            child.fitness = calculateFitness(child.solution);
+            calculateFitness(child);
         });
         
         // add the best parent to keep the best solution in the pool
@@ -191,5 +195,46 @@
             console.log(parents[0]); 
         }
     }, G);
+    
+    /**
+     * Draws an individual using the Isomer library.
+     */
+    function draw(individual) {
+        var Point  = Isomer.Point;
+        var Path   = Isomer.Path;
+        var Shape  = Isomer.Shape;
+        var Vector = Isomer.Vector;
+        var Color  = Isomer.Color;
+        
+        var canvas = document.getElementById("preview");
+        var ctx = canvas.getContext("2d");
+        ctx.clearRect ( 0 , 0 , canvas.width, canvas.height );
+        
+        var iso = new Isomer(canvas);
+        
+        var red = new Color(160, 60, 50);
+        var blue = new Color(50, 60, 160);
+        
+        var ls = [];
+        
+        _.each(individual.x, function (count, uid) {
+            var coords = uid.split('|');
+            ls.push({
+                x: +coords[0],
+                y: +coords[1],
+                z: +coords[2]
+            });
+        });
+        
+        console.log(individual.fitness);
+        
+        //FIXME colors need to be based on the actual snake order
+        //FIXME blocks need to be added back-to-front
+        var color = blue;
+        _.each(ls, function (l) {
+            color = color === blue ? red : blue;
+            iso.add(Shape.Prism(Point(l.x, l.y, l.z), 0.9, 0.9, 0.9), color);
+        });
+    }
     
 }) ();
