@@ -21,7 +21,7 @@ All solutions start in the corner of the cube.
 Fitness
 -------
 
-Every block outside the N x N x N cube is punished with +1 fitness and overlapping blocks in the solution are punished with +2. Fitness 0 then represents a correct solution to a correct puzzle.
+Every block outside the N x N x N cube is punished with [value] fitness and overlapping blocks in the solution are punished with [some other value]. Fitness 0 then represents a correct solution to a correct puzzle.
 
 Links
 =====
