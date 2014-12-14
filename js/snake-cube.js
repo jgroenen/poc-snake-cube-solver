@@ -29,15 +29,14 @@
     /**
      * Mutates the given candidate solution.
      */
-    function mutate(candidateSolution) {
+    function mutate(individual) {
         var i, j;
         for (i = 0; i < L; ++i) {
             if (Math.random() < M) {
                 j = Math.floor(Math.random() * alphabet.length);
-                candidateSolution[i] = alphabet[j];
+                individual.solution[i] = alphabet[j];
             }
         }
-        return candidateSolution;
     }
     
     /**
@@ -174,7 +173,7 @@
         _.each(children, function (child) {
             //FIXME fixed, variable or enherited mutation rate?
             //FIXME fixed, variable or enherited crossover points?
-            child.solution = mutate(child.solution);
+            mutate(child);
             calculateFitness(child);
         });
         
