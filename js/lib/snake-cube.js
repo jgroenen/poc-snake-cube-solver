@@ -37,65 +37,7 @@
         ctx.clearRect ( 0 , 0 , canvas.width, canvas.height );
             
         for (i = 0; i < individual.length; ++i) {
-            switch (individual[i]) {
-            case 'a': // straight ahead
-                break;
-            case 'l': // turn left, update direction
-                d = {
-                    x:   o.y * d.z  + -(o.z * d.y),
-                    y: -(o.x * d.z) +   o.z * d.x,
-                    z:   o.x * d.y  + -(o.y * d.x)
-                };
-                break;
-            case 'r': // turn right, update direction
-                d = {
-                    x: -(o.y * d.z) +   o.z * d.y,
-                    y:   o.x * d.z  + -(o.z * d.x),
-                    z: -(o.x * d.y) +   o.y * d.x
-                };
-                break;
-            case 'u': // turn up, update direction and orientation
-                t = { // copy of d
-                    x: d.x,
-                    y: d.y,
-                    z: d.z
-                };
-                d = {
-                    x: o.x,
-                    y: o.y,
-                    z: o.z
-                };
-                o = {
-                    x: -t.x,
-                    y: -t.y,
-                    z: -t.z
-                };
-                break;
-            case 'd': // turn down, update direction and orientation
-                t = { // copy of d
-                    x: d.x,
-                    y: d.y,
-                    z: d.z
-                };
-                d = {
-                    x: -o.x,
-                    y: -o.y,
-                    z: -o.z
-                };
-                o = {
-                    x: t.x,
-                    y: t.y,
-                    z: t.z
-                };
-                break;
-            default:
-                throw 'unexpected move';
-            }
-            
-            // step in direction, update location
-            l.x += d.x;
-            l.y += d.y;
-            l.z += d.z;
+            updateLocation(individual[i], l, d, o);
             
             // draw the block
             //FIXME blocks need to be added back-to-front
@@ -137,68 +79,10 @@
             l = {x: 0, y: 0, z: 0}, // location
             d = {x: 1, y: 0, z: 0}, // direction
             o = {x: 0, y: 1, z: 0}, // orientation
-            t, i, uid;
+            i, uid;
             
         for (i = 0; i < individual.length; ++i) {
-            switch (individual[i]) {
-            case 'a': // straight ahead
-                break;
-            case 'l': // turn left, update direction
-                d = {
-                    x:   o.y * d.z  + -(o.z * d.y),
-                    y: -(o.x * d.z) +   o.z * d.x,
-                    z:   o.x * d.y  + -(o.y * d.x)
-                };
-                break;
-            case 'r': // turn right, update direction
-                d = {
-                    x: -(o.y * d.z) +   o.z * d.y,
-                    y:   o.x * d.z  + -(o.z * d.x),
-                    z: -(o.x * d.y) +   o.y * d.x
-                };
-                break;
-            case 'u': // turn up, update direction and orientation
-                t = { // copy of d
-                    x: d.x,
-                    y: d.y,
-                    z: d.z
-                };
-                d = {
-                    x: o.x,
-                    y: o.y,
-                    z: o.z
-                };
-                o = {
-                    x: -t.x,
-                    y: -t.y,
-                    z: -t.z
-                };
-                break;
-            case 'd': // turn down, update direction and orientation
-                t = { // copy of d
-                    x: d.x,
-                    y: d.y,
-                    z: d.z
-                };
-                d = {
-                    x: -o.x,
-                    y: -o.y,
-                    z: -o.z
-                };
-                o = {
-                    x: t.x,
-                    y: t.y,
-                    z: t.z
-                };
-                break;
-            default:
-                throw 'unexpected move';
-            }
-            
-            // step in direction, update location
-            l.x += d.x;
-            l.y += d.y;
-            l.z += d.z;
+            updateLocation(individual[i], l, d, o);
             
             // penalty of 2 for taken position
             uid = l.x + '|' + l.y + '|' + l.z;
@@ -220,5 +104,71 @@
     });
     
     evolv.start();
+    
+    /**
+     * 
+     */
+    function updateLocation(move, l, d, o) {
+        var t;
+        switch (move) {
+        case 'a': // straight ahead
+            break;
+        case 'l': // turn left, update direction
+            d = {
+                x:   o.y * d.z  + -(o.z * d.y),
+                y: -(o.x * d.z) +   o.z * d.x,
+                z:   o.x * d.y  + -(o.y * d.x)
+            };
+            break;
+        case 'r': // turn right, update direction
+            d = {
+                x: -(o.y * d.z) +   o.z * d.y,
+                y:   o.x * d.z  + -(o.z * d.x),
+                z: -(o.x * d.y) +   o.y * d.x
+            };
+            break;
+        case 'u': // turn up, update direction and orientation
+            t = { // copy of d
+                x: d.x,
+                y: d.y,
+                z: d.z
+            };
+            d = {
+                x: o.x,
+                y: o.y,
+                z: o.z
+            };
+            o = {
+                x: -t.x,
+                y: -t.y,
+                z: -t.z
+            };
+            break;
+        case 'd': // turn down, update direction and orientation
+            t = { // copy of d
+                x: d.x,
+                y: d.y,
+                z: d.z
+            };
+            d = {
+                x: -o.x,
+                y: -o.y,
+                z: -o.z
+            };
+            o = {
+                x: t.x,
+                y: t.y,
+                z: t.z
+            };
+            break;
+        default:
+            throw 'unexpected move';
+        }
+        
+        // step in direction, update location
+        l.x += d.x;
+        l.y += d.y;
+        l.z += d.z;
+    }
     
 }) (window.Evolv, window.Isomer);
