@@ -2,6 +2,7 @@
  * 
  */
 (function () {
+    "use strict";
     
     /**
      * 
@@ -9,18 +10,19 @@
     window.Evolv = function (options) {
         var intervalId,
             parents = [],
-            beforeStart,
-            afterFinish,
-            beforeGeneration,
-            afterGeneration,
-            createIndividual,
-            mutationFunction,
-            fitnessFunction,
-            evolv;
+            beforeStart = function () {},
+            afterFinish = function () {},
+            beforeGeneration = function () {},
+            afterGeneration = function () {},
+            createIndividual = function () { throw 'no createIndividual function'; },
+            mutationFunction = function () { throw 'no mutate function'; },
+            fitnessFunction = function () { throw 'no fitness function'; },
+            evolv,
+            settings;
         
         // overwrite Evolv defaults with passed options
         options = options || {};
-        var settings = {
+        settings = {
             interval: options.interval ? options.interval : 1000,
             parents: options.parents ? options.parents : 5,
             children: options.children ? options.children : 25
@@ -93,32 +95,31 @@
          * Gets the best individual within the current generation.
          */
         function getBestIndividual() {
-            return parents[0];
+            return parents[0].solution;
         }
         
         /**
          * Creates the next generation.
          */
         function createNextGeneration() {
-            beforeGeneration && beforeGeneration(evolv);
+            var children = [], i, individual;
             
-            var children = [];
+            beforeGeneration(evolv);
             
-            for (var i = 0; i < settings.children; ++i) {
+            // create offspring
+            for (i = 0; i < settings.children; ++i) {
                 // random selection
                 //FIXME use parents fitness?
                 //FIXME use crossover?
-                var individual = {
-                    solution: parents[Math.floor(Math.random() * parents.length)].solution
-                };
-                mutationFunction && mutationFunction(individual);
-                fitnessFunction && fitnessFunction(individual);
+                individual = {};
+                individual.solution = mutationFunction(parents[Math.floor(Math.random() * parents.length)].solution);
+                individual.fitness = fitnessFunction(individual.solution);
                 children.push(individual);
             }
             
             // comma versus plus strategy (include best parent)
             //FIXME make this a parameter
-            children.push(getBestIndividual());
+            children.push(parents[0]);
             
             // select best children into next generation of parents
             children.sort(function (a, b) {
@@ -126,14 +127,28 @@
             });
             parents = children.slice(0, settings.parents);
             
-            afterGeneration && afterGeneration(evolv);
+            afterGeneration(evolv);
             
             // Stopcondition
             //FIXME needs to be set from the outside
             //FIXME do we want a perfect solution?
             if (parents[0].fitness === 0) {
-                evolv.stop();
-                evolv.afterFinish && evolv.afterFinish(evolv);
+                stop();
+                afterFinish(evolv);
+            }
+        }
+        
+        /**
+         * Initialises the evolutionary process.
+         */
+        function initialise() {
+            var i, individual;
+            parents = [];
+            for (i = 0; i < settings.parents; ++i) {
+                individual = {};
+                individual.solution = createIndividual();
+                individual.fitness = fitnessFunction(individual.solution);
+                parents.push(individual);
             }
         }
         
@@ -141,16 +156,8 @@
          * Starts the evolutionary process.
          */
         function start() {
-            evolv.beforeStart && evolv.beforeStart(evolv);
-            
-            // initialise the parent population
-            parents = [];
-            for (var i = 0; i < settings.parents; ++i) {
-                var individual = createIndividual();
-                fitnessFunction && fitnessFunction(individual);
-                parents.push(individual);
-            }
-            
+            beforeStart(evolv);
+            initialise();
             intervalId = setInterval(createNextGeneration, settings.interval);
         }
         
@@ -159,6 +166,7 @@
          */
         function stop() {
             intervalId && clearInterval(intervalId);
+            intervalId = null;
         }
     };
     
