@@ -88,10 +88,10 @@
             uid = l.x + '|' + l.y + '|' + l.z;
             if (x[uid]) {
                 ++fitness;
+                ++x[uid];
             } else {
-                x[uid] = 0;
+                x[uid] = 1;
             }
-            x[uid]++;
             
             // penalty of 1 for being outside of the cube
             if (l.x < 0 || l.x >= N ||
